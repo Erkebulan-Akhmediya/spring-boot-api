@@ -1,16 +1,20 @@
 package com.example.for_fun.user;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-@Setter
-@Getter
+import java.util.Collection;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "`user`")
-@NoArgsConstructor
-public class UserEntity {
+public class UserEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,11 +26,12 @@ public class UserEntity {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
     public UserEntity(String firstName, String lastName, String username, String email, String password) {
@@ -35,6 +40,11 @@ public class UserEntity {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
     }
 
 }
