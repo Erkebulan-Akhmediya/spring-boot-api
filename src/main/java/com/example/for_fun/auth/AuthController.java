@@ -8,7 +8,6 @@ import com.example.for_fun.role.exception.RoleNotFoundException;
 import com.example.for_fun.user.UserEntity;
 import com.example.for_fun.user.UserService;
 import com.example.for_fun.user.exception.UserNotFoundException;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -50,7 +49,6 @@ public class AuthController {
         }
     }
 
-    @Transactional
     @PostMapping("login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {

@@ -3,13 +3,16 @@ package com.example.for_fun.user;
 import com.example.for_fun.auth.dto.RegistrationRequest;
 import com.example.for_fun.role.RoleService;
 import com.example.for_fun.role.exception.RoleNotFoundException;
+import com.example.for_fun.user.dto.UserResponse;
 import com.example.for_fun.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +41,20 @@ public class UserService {
         } catch (Exception e) {
             throw new UserNotFoundException();
         }
+    }
+
+    public List<UserResponse> getAllUsers() {
+        return this.userRepository.findAll()
+                .stream()
+                .map(
+                        user -> UserResponse.builder()
+                                .firstName(user.getFirstName())
+                                .lastName(user.getLastName())
+                                .email(user.getEmail())
+                                .username(user.getUsername())
+                                .build()
+                )
+                .collect(Collectors.toList());
     }
 
     public UserDetailsService getUserDetailsService() {
