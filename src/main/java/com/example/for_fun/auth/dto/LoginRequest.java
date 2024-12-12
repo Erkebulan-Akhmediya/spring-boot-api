@@ -7,7 +7,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginDto {
+public class LoginRequest {
 
     @NotBlank(message = "username cannot be empty")
     private String username;
