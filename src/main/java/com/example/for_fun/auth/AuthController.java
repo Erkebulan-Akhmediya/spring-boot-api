@@ -4,8 +4,11 @@ import com.example.for_fun.auth.dto.LoginRequest;
 import com.example.for_fun.auth.dto.LoginResponse;
 import com.example.for_fun.auth.dto.RegistrationRequest;
 import com.example.for_fun.auth.dto.RegistrationResponse;
+import com.example.for_fun.role.exception.RoleNotFoundException;
 import com.example.for_fun.user.UserEntity;
 import com.example.for_fun.user.UserService;
+import com.example.for_fun.user.exception.UserNotFoundException;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,7 +19,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @RequiredArgsConstructor
@@ -39,6 +41,8 @@ public class AuthController {
             this.userService.create(registrationRequest);
             return ResponseEntity.ok().body(new RegistrationResponse(null));
 
+        } catch (RoleNotFoundException e) {
+            return ResponseEntity.internalServerError().body(new RegistrationResponse("Role not found"));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body(new RegistrationResponse("User already exists"));
         } catch (Exception e) {
@@ -46,6 +50,7 @@ public class AuthController {
         }
     }
 
+    @Transactional
     @PostMapping("login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
@@ -61,7 +66,7 @@ public class AuthController {
             final String token = this.jwtService.generateToken(new HashMap<>(), user);
             return ResponseEntity.ok(new LoginResponse(token, null));
 
-        } catch (NoSuchElementException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.badRequest().body(new LoginResponse(null, "User not found"));
         } catch (AuthenticationException e) {
             return ResponseEntity.badRequest().body(new LoginResponse(null, "Authentication failed"));

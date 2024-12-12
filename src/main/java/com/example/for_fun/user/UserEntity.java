@@ -1,14 +1,18 @@
 package com.example.for_fun.user;
 
+import com.example.for_fun.role.RoleEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -34,17 +38,22 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    public UserEntity(String firstName, String lastName, String username, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role_rel",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_name")
+    )
+    private Set<RoleEntity> roles;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return this.roles
+                .stream()
+                .map(
+                        role -> new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase())
+                )
+                .collect(Collectors.toList());
     }
 
 }
