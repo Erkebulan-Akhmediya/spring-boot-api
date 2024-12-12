@@ -3,15 +3,17 @@ package com.example.for_fun.auth;
 import com.example.for_fun.auth.dto.LoginRequest;
 import com.example.for_fun.auth.dto.LoginResponse;
 import com.example.for_fun.auth.dto.RegistrationRequest;
+import com.example.for_fun.auth.dto.RegistrationResponse;
 import com.example.for_fun.user.UserEntity;
 import com.example.for_fun.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -24,18 +26,21 @@ public class AuthController {
 
     private final UserService userService;
     private final JwtService jwtService;
+    private final AuthenticationManager authManager;
 
     @PostMapping("register")
-    public ResponseEntity<Void> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
         try {
 
             if (!Objects.equals(registrationRequest.getPassword(), registrationRequest.getConfirmPassword())) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body(new RegistrationResponse("Passwords do not match"));
             }
 
             this.userService.create(registrationRequest);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(new RegistrationResponse(null));
 
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(new RegistrationResponse("User already exists"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -45,12 +50,21 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
 
+            this.authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
+
             final UserEntity user = this.userService.getUserByUsername(loginRequest.getUsername());
             final String token = this.jwtService.generateToken(new HashMap<>(), user);
-            return ResponseEntity.ok(new LoginResponse(token));
+            return ResponseEntity.ok(new LoginResponse(token, null));
 
         } catch (NoSuchElementException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new LoginResponse(null, "User not found"));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.badRequest().body(new LoginResponse(null, "Authentication failed"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
