@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
 
     List<UserEntity> findByRolesContaining(Set<RoleEntity> roles);
+
+    List<UserEntity> findAllByIsActive(boolean isActive);
 }

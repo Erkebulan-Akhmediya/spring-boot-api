@@ -38,6 +38,10 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role_rel",
@@ -54,6 +58,11 @@ public class UserEntity implements UserDetails {
                         role -> new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase())
                 )
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.isActive;
     }
 
 }

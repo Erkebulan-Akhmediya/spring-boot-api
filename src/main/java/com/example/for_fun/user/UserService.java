@@ -3,7 +3,6 @@ package com.example.for_fun.user;
 import com.example.for_fun.auth.dto.RegistrationRequest;
 import com.example.for_fun.role.RoleService;
 import com.example.for_fun.role.exception.RoleNotFoundException;
-import com.example.for_fun.user.dto.UserResponse;
 import com.example.for_fun.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,18 +41,29 @@ public class UserService {
         }
     }
 
-    public List<UserResponse> getAllUsers() {
-        return this.userRepository.findAll()
-                .stream()
-                .map(
-                        user -> UserResponse.builder()
-                                .firstName(user.getFirstName())
-                                .lastName(user.getLastName())
-                                .email(user.getEmail())
-                                .username(user.getUsername())
-                                .build()
-                )
-                .collect(Collectors.toList());
+    public List<UserEntity> getAllUsers(Boolean isActive) {
+        if (isActive == null) return this.userRepository.findAll();
+        return this.userRepository.findAllByIsActive(isActive);
+    }
+
+    public void update(Long id, UserEntity newUser) throws UserNotFoundException {
+        final UserEntity oldUser = this.userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+
+        oldUser.setFirstName(newUser.getFirstName());
+        oldUser.setLastName(newUser.getLastName());
+        oldUser.setEmail(newUser.getEmail());
+        oldUser.setUsername(newUser.getUsername());
+        oldUser.setActive(newUser.isActive());
+
+        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
+            oldUser.setPassword(this.passwordEncoder.encode(newUser.getPassword()));
+        }
+
+        if (newUser.getRoles() != null && !newUser.getRoles().isEmpty()) {
+            oldUser.setRoles(newUser.getRoles());
+        }
+
+        this.userRepository.save(oldUser);
     }
 
     public UserDetailsService getUserDetailsService() {
