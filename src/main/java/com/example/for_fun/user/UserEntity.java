@@ -1,5 +1,6 @@
 package com.example.for_fun.user;
 
+import com.example.for_fun.post.PostEntity;
 import com.example.for_fun.role.RoleEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,6 +50,9 @@ public class UserEntity implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_name")
     )
     private Set<RoleEntity> roles;
+
+    @OneToMany(mappedBy = "createdBy")
+    private Set<PostEntity> posts;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
