@@ -15,24 +15,36 @@ public class PostService {
 
     private final PostRepository postRepository;
 
-    public void create(PostRequest postRequest, UserEntity user) {
+    public Long create(PostRequest postRequest, UserEntity author) {
         PostEntity post = PostEntity.builder()
                 .title(postRequest.getTitle())
                 .content(postRequest.getContent())
-                .createdBy(user)
+                .createdBy(author)
                 .build();
-        this.postRepository.save(post);
+        return this.postRepository.save(post).getId();
     }
 
-    public void update(Long id, PostRequest postRequest, UserEntity user)
+    public PostEntity get(Long id, UserEntity requestingUser) throws NoSuchElementException, AccessDeniedException {
+        PostEntity post = this.postRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("Post not found")
+        );
+        if (post.getCreatedBy().isActive()) return post;
+        final boolean isRequestingUserAdmin = requestingUser.getRoles()
+                .stream()
+                .anyMatch(role -> Objects.equals(role.getName(), "admin"));
+        if (isRequestingUserAdmin) return post;
+        throw new AccessDeniedException("Access denied");
+    }
+
+    public void update(Long id, PostRequest postRequest, UserEntity requestingUser)
             throws NoSuchElementException, AccessDeniedException {
 
         PostEntity post = this.postRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("Post not found")
         );
 
-        if (!Objects.equals(post.getCreatedBy().getId(), user.getId())) {
-            throw new AccessDeniedException("The user doesn't have permission to update this post");
+        if (!Objects.equals(post.getCreatedBy().getId(), requestingUser.getId())) {
+            throw new AccessDeniedException("Only the author of the post can update it");
         }
 
         post.setTitle(postRequest.getTitle());

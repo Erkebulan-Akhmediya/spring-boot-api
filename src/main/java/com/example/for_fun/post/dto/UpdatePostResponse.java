@@ -9,6 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class PostResponse {
+public class UpdatePostResponse {
     private String error;
 }
