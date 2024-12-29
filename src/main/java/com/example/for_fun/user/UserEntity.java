@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,10 @@ public class UserEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return this.isActive;
+    }
+
+    public boolean isAdmin() {
+        return this.roles.stream().anyMatch(role -> Objects.equals(role.getName(), "admin"));
     }
 
 }

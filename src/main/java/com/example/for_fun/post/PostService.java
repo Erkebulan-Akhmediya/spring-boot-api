@@ -29,10 +29,7 @@ public class PostService {
                 () -> new NoSuchElementException("Post not found")
         );
         if (post.getCreatedBy().isActive()) return post;
-        final boolean isRequestingUserAdmin = requestingUser.getRoles()
-                .stream()
-                .anyMatch(role -> Objects.equals(role.getName(), "admin"));
-        if (isRequestingUserAdmin) return post;
+        if (requestingUser.isAdmin()) return post;
         throw new AccessDeniedException("Access denied");
     }
 
