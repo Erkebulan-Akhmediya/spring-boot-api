@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
@@ -43,6 +44,24 @@ public class PostController {
             return ResponseEntity.ok(GetPostResponse.fromPost(post));
         } catch (NoSuchElementException | AccessDeniedException e) {
             return ResponseEntity.badRequest().body(new GetPostResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<GetPostResponse>> getAll(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(name = "items_per_page", required = false) Integer itemsPerPage
+    ) {
+        try {
+            if (page == null && itemsPerPage != null) page = 0;
+            if (page != null && itemsPerPage == null) itemsPerPage = 10;
+            List<GetPostResponse> posts = this.postService.getAll(page, itemsPerPage)
+                    .stream()
+                    .map(GetPostResponse::fromPost)
+                    .toList();
+            return ResponseEntity.ok().body(posts);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
