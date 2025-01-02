@@ -4,6 +4,7 @@ import com.example.for_fun.post.dto.PostRequest;
 import com.example.for_fun.user.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +38,13 @@ public class PostService {
 
     public List<PostEntity> getAll(Integer page, Integer itemsPerPage) {
         if (page == null || itemsPerPage == null) return this.postRepository.findAll();
-        return this.postRepository.findAll(PageRequest.of(page, itemsPerPage)).getContent();
+        return this.postRepository.findAll(
+                PageRequest.of(
+                        page,
+                        itemsPerPage,
+                        Sort.by("createdAt").descending()
+                )
+        ).getContent();
     }
 
     public void update(Long id, PostRequest postRequest, UserEntity requestingUser)

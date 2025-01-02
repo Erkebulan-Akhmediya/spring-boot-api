@@ -51,13 +51,13 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<GetPostResponse>> getAll(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(name = "items_per_page", required = false) Integer itemsPerPage
+            @RequestParam(name = "page_number", required = false) Integer pageNumber,
+            @RequestParam(name = "page_size", required = false) Integer pageSize
     ) {
         try {
-            if (page == null && itemsPerPage != null) page = 0;
-            if (page != null && itemsPerPage == null) itemsPerPage = 10;
-            List<GetPostResponse> posts = this.postService.getAll(page, itemsPerPage)
+            if (pageNumber == null && pageSize != null) pageNumber = 0;
+            if (pageNumber != null && pageSize == null) pageSize = 10;
+            List<GetPostResponse> posts = this.postService.getAll(pageNumber, pageSize)
                     .stream()
                     .map(GetPostResponse::fromPost)
                     .toList();
