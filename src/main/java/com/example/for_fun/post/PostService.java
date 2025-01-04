@@ -3,11 +3,13 @@ package com.example.for_fun.post;
 import com.example.for_fun.post.dto.PostRequest;
 import com.example.for_fun.user.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -36,15 +38,21 @@ public class PostService {
         throw new AccessDeniedException("Access denied");
     }
 
-    public List<PostEntity> getAll(Integer page, Integer itemsPerPage) {
-        if (page == null || itemsPerPage == null) return this.postRepository.findAll();
-        return this.postRepository.findAll(
-                PageRequest.of(
-                        page,
-                        itemsPerPage,
-                        Sort.by("createdAt").descending()
-                )
-        ).getContent();
+    public List<PostEntity> getAll(Integer pageNumber, Integer pageSize, Date date) {
+        if (pageNumber == null || pageSize == null) {
+            if (date == null) return postRepository.findAll();
+            return this.postRepository.findAllByCreatedAtAfter(date);
+        }
+
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by("createdAt").descending()
+        );
+
+        Page<PostEntity> page = this.postRepository.findAllByCreatedAtAfter(date, pageRequest);
+        if (date == null) page = this.postRepository.findAll(pageRequest);
+        return page.getContent();
     }
 
     public void update(Long id, PostRequest postRequest, UserEntity requestingUser)

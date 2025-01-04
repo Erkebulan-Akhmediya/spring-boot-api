@@ -6,11 +6,13 @@ import com.example.for_fun.post.dto.PostRequest;
 import com.example.for_fun.post.dto.UpdatePostResponse;
 import com.example.for_fun.user.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -49,15 +51,17 @@ public class PostController {
         }
     }
 
+    // TODO: add time filter
     @GetMapping
     public ResponseEntity<List<GetPostResponse>> getAll(
             @RequestParam(name = "page_number", required = false) Integer pageNumber,
-            @RequestParam(name = "page_size", required = false) Integer pageSize
+            @RequestParam(name = "page_size", required = false) Integer pageSize,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date
     ) {
         try {
             if (pageNumber == null && pageSize != null) pageNumber = 0;
             if (pageNumber != null && pageSize == null) pageSize = 10;
-            List<GetPostResponse> posts = this.postService.getAll(pageNumber, pageSize)
+            List<GetPostResponse> posts = this.postService.getAll(pageNumber, pageSize, date)
                     .stream()
                     .map(GetPostResponse::fromPost)
                     .toList();
